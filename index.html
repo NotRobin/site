@@ -368,6 +368,15 @@
             }, 50); // Adjust fade speed here
         }
 
+        // Mute/unmute audio based on tab visibility
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) {
+                fadeAudio(0, 500); // Fade out over 500ms
+            } else if (!isMuted) {
+                fadeAudio(0.1, 500); // Fade in over 500ms
+            }
+        });
+
         // Toggle audio mute/unmute
         function toggleAudio() {
             isMuted = !isMuted;
@@ -426,6 +435,10 @@
                     projectsSection.style.opacity = 1;
                 }, 10);
             }, 230);
+        });
+
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
         });
 
         // Add back button functionality to ensure mute button persists
