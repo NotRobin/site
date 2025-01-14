@@ -85,6 +85,7 @@
             margin: 0 20px;
             font-size: 18px;
             transition: transform 0.2s, color 0.3s;
+            text-decoration: underline;
         }
 
         .navbar .nav-link:hover {
@@ -197,24 +198,19 @@
             border-color: #992DFF;
         }
 
-        /* Responsive Design */
+        /* Responsive styles for mobile */
         @media (max-width: 768px) {
             #background-video {
-                display: none;
+                display: none !important;
+            }
+
+            body {
+                background-color: #000;
             }
 
             .main img {
-                width: 80%;
-            }
-
-            .discord-tag {
-                width: 90%;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .discord-tag img {
-                margin-bottom: 10px;
+                width: 250px;
+                height: auto;
             }
 
             .main h1 {
