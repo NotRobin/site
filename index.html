@@ -31,7 +31,7 @@
             z-index: -1;
             display: none;
             opacity: 1;
-            transition: opacity 1.5s ease-in-out;
+            transition: opacity 0.23s ease-in-out;
         }
 
         #landing {
@@ -46,7 +46,7 @@
             display: none;
             text-align: center;
             opacity: 0;
-            transition: opacity 1.5s ease-in-out;
+            transition: opacity 0.23s ease-in-out;
         }
 
         #projects-section {
@@ -57,7 +57,7 @@
             height: 100vh;
             opacity: 0;
             padding: 20px;
-            transition: opacity 1.5s ease-in-out;
+            transition: opacity 0.23s ease-in-out;
         }
 
         .enter-button {
@@ -84,17 +84,13 @@
             color: #fff;
             margin: 0 20px;
             font-size: 18px;
-            transition: transform 0.2s, color 0.3s;
+            text-decoration: underline;
+            transition: transform 0.23s, color 0.23s;
         }
 
         .navbar .nav-link:hover {
             color: #992DFF;
             transform: scale(1.1);
-        }
-
-        .navbar .donate-link {
-            pointer-events: auto;
-            transition: color 0.3s, transform 0.2s;
         }
 
         .main {
@@ -196,6 +192,43 @@
             color: #992DFF;
             border-color: #992DFF;
         }
+
+        .audio-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s;
+        }
+
+        .audio-toggle.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .blinking-cursor {
+            font-size: inherit;
+            color: inherit;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+
+
+
+
     </style>
 </head>
 
@@ -204,6 +237,8 @@
         <source src="assets/videos/dogs.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
+
+    <img id="mute-button" class="audio-toggle" src="assets/img/unmute.png" alt="Unmute Audio">
 
     <!-- Landing Page -->
     <div id="landing">
@@ -218,7 +253,7 @@
                 <a class="nav-link" href="#">Home</a>
                 <a class="nav-link" id="projects-button" href="#">Projects</a>
                 <a class="nav-link" href="https://discord.com/users/941724517481463888" target="_blank">Contact</a>
-                <a class="nav-link donate-link" id="donate-button">Donate</a>
+                <a class="nav-link donate-link" id="donate-button" href="#">Donate</a>
             </div>
         </nav>
 
@@ -269,7 +304,7 @@
                     setTimeout(() => {
                         projectsSection.style.opacity = 1;
                     }, 10);
-                }, 1500);
+                }, 230);
             });
 
             // Donate Hover Effect
@@ -280,8 +315,81 @@
             donateLink.addEventListener("mouseout", () => {
                 donateLink.textContent = "Donate";
             });
-        });
 
+            // Typing Effect
+            const words = ["student.", "scripter.", "developer.", "cool guy!", "smart boy!", "dog lover."];
+            const typingElement = document.getElementById("typing");
+            let wordIndex = 0;
+            let charIndex = 0;
+            let isDeleting = false;
+
+            function type() {
+                const currentWord = words[wordIndex];
+                typingElement.innerHTML = `${currentWord.substring(0, charIndex)}<span class="blinking-cursor">|</span>`; // Add blinking cursor
+
+                if (!isDeleting && charIndex < currentWord.length) {
+                    charIndex++;
+                } else if (!isDeleting && charIndex === currentWord.length) {
+                    setTimeout(() => {
+                        isDeleting = true;
+                    }, 2000); // Pause before deleting
+                } else if (isDeleting && charIndex > 0) {
+                    charIndex--;
+                } else if (isDeleting && charIndex === 0) {
+                    isDeleting = false;
+                    wordIndex = (wordIndex + 1) % words.length; // Cycle through words
+                }
+
+                setTimeout(type, isDeleting ? 50 : 150); // Typing and deleting speeds
+            }
+
+            type();
+
+        });
+        
+
+        const muteButton = document.getElementById("mute-button");
+        const audio = new Audio("assets/music/BG.mp3");
+        audio.loop = true;
+        audio.volume = 0.1;
+        let isMuted = false;
+
+        // Fade audio function
+        function fadeAudio(targetVolume, callback) {
+            const step = (targetVolume - audio.volume) / 10;
+            const interval = setInterval(() => {
+                if (Math.abs(audio.volume - targetVolume) <= Math.abs(step)) {
+                    audio.volume = targetVolume;
+                    clearInterval(interval);
+                    if (callback) callback();
+                } else {
+                    audio.volume += step;
+                }
+            }, 50); // Adjust fade speed here
+        }
+
+        // Toggle audio mute/unmute
+        function toggleAudio() {
+            isMuted = !isMuted;
+            if (isMuted) {
+                fadeAudio(0, () => (audio.muted = true));
+                muteButton.src = "assets/img/mute.png";
+            } else {
+                audio.muted = false;
+                fadeAudio(0.1);
+                muteButton.src = "assets/img/unmute.png";
+            }
+        }
+
+        // Show/hide mute button with fade-in/out
+        function showMuteButton() {
+            muteButton.classList.add("visible");
+        }
+
+        // Add event listener for mute button click
+        muteButton.addEventListener("click", toggleAudio);
+
+        // Modify enterSite to show mute button
         function enterSite() {
             document.getElementById("landing").style.display = "none";
             const backgroundVideo = document.getElementById("background-video");
@@ -292,12 +400,35 @@
 
             setTimeout(() => {
                 mainContent.style.opacity = 1;
+                showMuteButton(); // Show mute button after entering world
             }, 10);
 
-            startTyping();
-            startMusic();
+            audio.play();
         }
 
+        // Modify Projects button click to ensure mute button persists
+        document.getElementById("projects-button").addEventListener("click", (event) => {
+            event.preventDefault();
+
+            const mainContent = document.getElementById("main-content");
+            const backgroundVideo = document.getElementById("background-video");
+
+            mainContent.style.opacity = 0;
+            backgroundVideo.style.opacity = 0;
+
+            setTimeout(() => {
+                mainContent.style.display = "none";
+                backgroundVideo.style.display = "none";
+
+                const projectsSection = document.getElementById("projects-section");
+                projectsSection.style.display = "block";
+                setTimeout(() => {
+                    projectsSection.style.opacity = 1;
+                }, 10);
+            }, 230);
+        });
+
+        // Add back button functionality to ensure mute button persists
         function goBack() {
             const projectsSection = document.getElementById("projects-section");
             projectsSection.style.opacity = 0;
@@ -313,53 +444,9 @@
                 setTimeout(() => {
                     mainContent.style.opacity = 1;
                     backgroundVideo.style.opacity = 1;
+                    showMuteButton(); // Ensure mute button persists when returning
                 }, 10);
-            }, 1500);
-        }
-
-        function startTyping() {
-            const words = ["student.", "scripter.", "developer.", "cool guy!", "smart boy!", "dog lover."];
-            const typingElement = document.getElementById("typing");
-            let wordIndex = 0;
-            let charIndex = 0;
-            let isDeleting = false;
-
-            function type() {
-                const currentWord = words[wordIndex];
-                typingElement.textContent = currentWord.substring(0, charIndex);
-
-                if (!isDeleting && charIndex < currentWord.length) {
-                    charIndex++;
-                } else if (!isDeleting && charIndex === currentWord.length) {
-                    setTimeout(() => {
-                        isDeleting = true;
-                    }, wordIndex === 2 ? 4000 : 2000);
-                } else if (isDeleting && charIndex > 0) {
-                    charIndex--;
-                } else if (isDeleting && charIndex === 0) {
-                    isDeleting = false;
-                    wordIndex = (wordIndex + 1) % words.length;
-                }
-
-                setTimeout(type, isDeleting ? 50 : 150);
-            }
-
-            type();
-        }
-
-        function startMusic() {
-            const audio = new Audio("assets/music/BG.mp3");
-            audio.loop = true;
-            audio.volume = 0;
-            audio.play();
-
-            let fadeInterval = setInterval(() => {
-                if (audio.volume < 0.3) {
-                    audio.volume = Math.min(audio.volume + 0.01, 0.3);
-                } else {
-                    clearInterval(fadeInterval);
-                }
-            }, 200);
+            }, 230);
         }
     </script>
 </body>
